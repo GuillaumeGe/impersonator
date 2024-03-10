@@ -59,7 +59,7 @@ function Session(config) {
 
     this.reset = function() {
         this.turnIndex = 0;
-        this.wordIndex = 0;
+        this.wordIndex = -1;
         this.words = [];
         
         if (this.config.datasetURL != undefined) {
@@ -69,10 +69,11 @@ function Session(config) {
                     const wordsDataset = JSON.parse(data)["words"];
                     this.words = pickRandomElements(wordsDataset, maxWords);
                 } catch {
-    
+    				
                 }
             }
         }
+        
         clearInterval(this.loopTimer);
 
         this.loopTimer = setInterval(function() {
@@ -94,7 +95,7 @@ function Session(config) {
     }
 
     this.getCurrentWord = function() {
-        if (this.wordIndex < this.words) {
+        if (this.wordIndex < this.words && 0 < this.wordIndex) {
             return this.words[this.wordIndex];
         }
         return undefined;
@@ -132,7 +133,7 @@ function Session(config) {
 const wss = new WebSocket.Server({ noServer: true });
 
 // Store connected clients
-const clients = [];
+const wssClients = [];
 const sessions = [];
 
 const MAX_SESSIONS = 10;
@@ -161,7 +162,7 @@ function getSessionById(id) {
 
 // Broadcast function to send messages to all clients
 const broadcast = (message) => {
-    clients.forEach((client) => {
+    wssClients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);
         }
@@ -173,7 +174,7 @@ wss.on('connection', (ws) => {
     console.log('Client connected');
 
     // Add client to the list
-    clients.push(ws);
+    wssClients.push(ws);
 
     // Handle incoming messages
     ws.on('message', (message) => {
@@ -188,7 +189,8 @@ wss.on('connection', (ws) => {
         console.log('Client disconnected');
         
         // Remove client from the list
-        clients.splice(clients.indexOf(ws), 1);
+        wssClients.splice(wssClients.indexOf(ws), 1);
+        // Mark player as inactive
     });
 });
 
