@@ -9,6 +9,17 @@ const WS_MESSAGE_TYPE_UPDATE_SESSION = "";
 const WS_MESSAGE_TYPE_UPDATE_PLAYERS = "";
 const WS_MESSAGE_TYPE_SESSION_EXPIRED = "";
 
+const AUTHORIZED_USERS = [
+    {
+        username: "guillaume",
+        password: "jesuisunimposteur"
+    },
+    {
+        username: "marcello",
+        password: "jesuisunimposteur"
+    }
+]
+
 function WSMessage(messageType, data) {
     return {
         type: messageType,
@@ -104,6 +115,24 @@ class App {
             }
         });
 
+        this.httpServer.put('/sessions/:sessionId/players/:playerId', (req, res) => {
+            const session = this.getSessionById(req.params.sessionId);
+            const dataObject = req.body;
+            if (session !== undefined) {
+                const player = session.getPlayerById(req.params.playerId);
+                if (player !== undefined) {
+                    //response.statusCode = 200;
+                    player.name = dataObject.name;
+                    player.avatarIndex = dataObject.avatarIndex;
+                    
+                    this.broadcast(WSMessage(WS_MESSAGE_TYPE_UPDATE_PLAYERS, {
+                        players: session.players.map(p => p.JSON())
+                    }))
+                    res.json(player.JSON());
+                }
+            }
+        });
+
         this.httpServer.delete("/sessions", (req, res) => {
             this.removeAllSessions();
             res.json({
@@ -142,7 +171,7 @@ class App {
         }
         //TODO: convert to dict ?
 
-        for(const session in this.sessions) {
+        for(const session of this.sessions) {
             if (session.id === id) {
                 return session;
             }

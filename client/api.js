@@ -78,22 +78,26 @@ function ImpersonatorAPI (serverBaseUrl, errorCallback) {
 	}
 	
 	this.createSession = async function() {
-		return await this._call("POST", "/sessions");
+		return await this._call("POST", `/sessions`);
 	}
 	
-	this.joinSession = async function(sessionId, playerInfos) {
-		return await this._call("POST", '/sessions/{sessionId}/players', playerInfos);
+	this.joinSessionCreatePlayer = async function(sessionId, playerInfos) {
+		return await this._call("POST", `/sessions/{sessionId}/players`, playerInfos);
+	}
+
+	this.joinSessionUpdatePlayer = async function(sessionId, playerId, playerInfos) {
+		return await this._call("POST", `/sessions/{sessionId}/players/{playerId}`, playerInfos);
 	}
 	
 	this.startSession = async function(sessionId) {
-		return await this._call("POST", '/sessions/{sessionId}/actions/start');
+		return await this._call("POST", `/sessions/{sessionId}/actions/start`);
 	}
 	
 	this.deleteSession = async function(sessionId) {
-		return await this._call("DELETE", '/sessions/{sessionId}');
+		return await this._call("DELETE", `/sessions/{sessionId}`);
 	}
 	
 	this.deleteAllSession = async function() {
-		return await this._call("DELETE", '/sessions');
+		return await this._call("DELETE", `/sessions`);
 	}
 }

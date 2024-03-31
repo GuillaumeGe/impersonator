@@ -7,12 +7,13 @@ function generateID() {
 }
 
 module.exports = class Player {
-    constructor(name, imgIndex) {
+    constructor(name, avatarIndex) {
         this.id = generateID();
         this.name = name;
         this.words = [];
         this.vote = undefined;
         this.score = 0;
+        this.avatarIndex = avatarIndex;
     }
 
     JSON = function () {
@@ -20,7 +21,8 @@ module.exports = class Player {
             id: this.id,
             name: this.name,
             score: this.score,
-            words: this.words
+            words: this.words,
+            avatarIndex: this.avatarIndex
         };
     };
 }

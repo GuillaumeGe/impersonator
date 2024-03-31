@@ -6,27 +6,152 @@
         <title>L'Imposteur Online</title>
         <script type="text/javascript" src="./lib/qrcodejs/jquery.min.js"></script>
         <script type="text/javascript" src="./lib/qrcodejs/qrcode.min.js"></script>
-        <link href="./client.css">
+        <link rel="stylesheet" href="./client.css">
     </head>
     <body>
         <div class="templates">
             <div class="init">
-                <div class="player template">
-
+                <div class="list-item player template">
+                    <div class="row">
+                        <img src="../res/%IMG%"/>
+                        <div>%PLAYER_NAME%</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="view init">
-            <form>
-                <button class="join">Rejoindre une session</button>
-                <button class="create">Créer une session</button>
-            </form>
+            <h1 class="logo-wrapper row m-h-auto">
+                <img src="../res/icon.svg" class="logo-img"/>
+                <div style="margin: auto 2vw; display: block;">L'Imposteur</div>
+            </h1>
+            <section class="session-creation hidden">
+                <h2>Configuration</h2>
+                <div class="row space-between">
+                    <div>Nombre de joueurs min.</div>
+                    <input type="number" value="4" min="4" max="6">
+                </div>
+                <div class="row space-between">
+                    <div>Nombre de joueurs max.</div>
+                    <input type="number" value="10" min="6" max="10">
+                </div>
+                <div class="row space-between">
+                    <div>Nombre d'imposteurs</div>
+                    <input type="number" value="1" min="1" max="3">
+                </div>
+                <div class="row space-between">
+                    <div>Nombre de tours</div>
+                    <input type="number" value="3" min="1" max="3">
+                </div>
+                <div class="row space-between">
+                    <div>Activer décompte joueur</div>
+                    <input type="checkbox"/>
+                </div>
+                <!-- <button class="create m-h-auto">Créer une session</button> -->
+            </section>
+            
+            <section class="ws-feed hidden">
+                <div class="qr-code m-h-auto"></div>
+                <div>
+                    <h2 class="m-h-auto row space-between">
+                        <div>Joueurs</div>
+                        <div class="n-players">5</div>
+                    </h2>
+                    <div class="list players">
+                        <div class="row">
+                            <img src="../res/shark.png"/>
+                            <div>Guillaume</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/bear.png"/>
+                            <div>Marcello</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/furet.png"/>
+                            <div>Val</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/giraf.png"/>
+                            <div>Adri</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/cat.png"/>
+                            <div>Ali</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/koala.png"/>
+                            <div>Seb</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/dog-2.png"/>
+                            <div>Syril</div>
+                        </div>
+                        <div class="row">
+                            <img src="../res/fish.png"/>
+                            <div>Invité</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="start m-h-auto">Commencer !</button>
+            </section>
 
-            <div class="qr-code"></div>
-            <div class="list players"></div>
+            <section class="player-creation hidden">
+                <h2 class="m-h-auto">Qui es-tu ?</h2>
+                <div class="list avatars"></div>
+                <input class="name m-h-auto" value="" placeholder="Pseudo" type="text">
+                <button class="join m-h-auto ">Rejoindre</button>
+            </section>
+        </div>
+
+        <div class="view game">
+            <section class="infos">
+                <b class="word m-h-auto">- Imposteur -</b>
+                <div class="typing-animation">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </section>
+            <section>
+                <div class="list players">
+                    <div class="row">
+                        <img src="../res/shark.png"/>
+                        <div>Guillaume</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/bear.png"/>
+                        <div>Marcello</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/furet.png"/>
+                        <div>Val</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/giraf.png"/>
+                        <div>Adri</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/cat.png"/>
+                        <div>Ali</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/koala.png"/>
+                        <div>Seb</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/dog-2.png"/>
+                        <div>Syril</div>
+                    </div>
+                    <div class="row">
+                        <img src="../res/fish.png"/>
+                        <div>Invité</div>
+                    </div>
+                </div>
+            </section>
         </div>
     </body>
+
+    <script type="text/javascript" src="../shared/constants.js"></script>
     <script type="text/javascript" src="./api.js"></script>
     <script type="text/javascript" src="./client.js"></script>
 </html>

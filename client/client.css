@@ -1,4 +1,193 @@
+body {
+    background-color: #3f3da7;
+    color: white;
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system;
+}
+
+* {
+    box-sizing: border-box;
+    position: relative;
+}
+
 .hidden,
 .template {
-    display: none;
+    display: none !important;
+}
+
+.m-h-auto {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+button {
+    border: none;
+    padding: 12px;
+    border-radius: 24px;
+    font-size: x-large;
+    margin: 1%;
+    color: azure;
+    background-color: #032257;
+    appearance: none;
+}
+
+input[type="number"] {
+    min-width: 30px;
+    border-radius: 24px;
+    border: none;
+    padding: 0 12px;
+}
+
+h1.logo-wrapper {
+    color: black;
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+}
+
+h1.logo-wrapper .logo-img {
+    width: 20%;
+}
+
+.view {
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100vh;
+    background: rgba(0,0,0,0.05);
+    padding: 16px;
+    font-size: x-large;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.row.space-between {
+    justify-content: space-between;
+}
+
+.view.init .qr-code {
+    width: 70%;
+    max-width: 256px;
+}
+
+.view h2 {
+    text-align: center;
+}
+
+/* .view > section:not(:last-child) {
+    margin-bottom: 32px;
+    border-bottom: solid 1px black;
+} */
+
+.view.init input[type="number"] {
+    width: 64px;
+}
+
+.view > section > *:first-child {
+    margin-top: 16px;
+}
+.view > section > *:not(:last-child) {
+    margin-bottom: 16px;
+}
+
+.view > section:last-child {
+    padding-bottom: 16px;
+}
+
+.view.init .qr-code > img,
+.view.init .qr-code > canvas {
+    width: 100% !important;
+}
+
+.view.init .list.avatars {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-gap: 8px;
+
+}
+
+.view.game .list.players img,
+.view.init .list.players img{
+    width: 48px;
+}
+
+.view.game .list.players > *:not(:last-child),
+.view.init .list.players > *:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.view.game .list.players > *,
+.view.init .list.players > *{
+   align-items: center;
+   justify-content: space-between;
+   border: solid 1px rgba(0,0,0,0.5);
+   border-radius: 24px;
+   padding: 0px 12px  0px 0px;
+}
+
+.view.init input.name {
+    font-size: x-large;
+    border-radius: 24px;
+    border: none;
+    padding: 12px;
+    text-align: center;
+}
+
+.view.init .list.avatars img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: fill;
+    display: inline-block;
+}
+
+.view.init .list.avatars img.selected::before{
+    content: '';
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    border-radius: 50%;
+    background-color: greenyellow;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.typing-animation > * {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #032257;
+    display: inline-block;
+    animation: opacity-2 infinite;
+    animation-duration: 500ms;
+}
+
+.typing-animation > *:first-child {
+    animation-name: opacity-1;
+}
+
+.typing-animation > *:last-child {
+    animation-name: opacity-3;
+}
+
+@keyframes opacity-1 {
+    0% {opacity: 0;}
+    100% {opacity: 0.5;}
+}
+
+@keyframes opacity-2 {
+    0% {opacity: 0.25;}
+    50% {opacity: 0.75;}
+    100% {opacity: 0.25;}
+}
+
+@keyframes opacity-3 {
+    0% {opacity: 0.5;}
+    50% {opacity: 0.75;}
+    100% {opacity: 0.5;}
 }
