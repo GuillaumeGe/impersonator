@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>L'Imposteur Online</title>
+        <script type="text/javascript" src="./lib/qrcodejs/jquery.min.js"></script>
+        <script type="text/javascript" src="./lib/qrcodejs/qrcode.min.js"></script>
+        <link href="./client.css">
+    </head>
+    <body>
+        <div class="templates">
+            <div class="init">
+                <div class="player template">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="view init">
+            <form>
+                <button class="join">Rejoindre une session</button>
+                <button class="create">Créer une session</button>
+            </form>
+
+            <div class="qr-code"></div>
+            <div class="list players"></div>
+        </div>
+    </body>
+    <script type="text/javascript" src="./api.js"></script>
+    <script type="text/javascript" src="./client.js"></script>
+</html>

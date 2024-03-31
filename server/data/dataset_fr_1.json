@@ -9,6 +9,15 @@
         "bain",
         "barque",
         "bassin",
+        "bonbon",
+        "véhicule",
+        "classe",
+        "bouton",
+        "cuivre",
+        "panda",
+        "autruche",
+        "pompier",
+        "docteur",
         "bébé",
         "bec",
         "bête",
@@ -133,6 +142,7 @@
         "réfrigérateur",
         "repas",
         "tartine",
+        "potion",
         "torchon",
         "vaisselle",
         "ambulance",
@@ -284,5 +294,4 @@
         "viande",
         "vin"
       ]
-      
 }
