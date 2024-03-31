@@ -48,7 +48,7 @@ module.exports = class Session {
         this.words = [];
 
         try {
-            const data = fs.readFileSync("../data/dataset_1.json", 'utf8');
+            const data = fs.readFileSync("../data/dataset_fr_1.json", 'utf8');
             const wordsDataset = JSON.parse(data)["words"];
             this.words = pickRandomElements(wordsDataset, this.config.maxWords);
         } catch {
