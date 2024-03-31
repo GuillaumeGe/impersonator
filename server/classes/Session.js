@@ -74,6 +74,18 @@ module.exports = class Session {
         }
     };
 
+    getPlayerById = function(id) {
+        if (id === undefined) {
+            return undefined;
+        }
+
+        for(const player of this.players) {
+            if (player.id === id) {
+                return player;
+            }
+        }
+    }
+
     close = function () {
         clearInterval(this._loopTimer);
     };
