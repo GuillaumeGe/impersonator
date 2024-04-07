@@ -12,11 +12,11 @@ const WS_MESSAGE_TYPE_SESSION_EXPIRED = "";
 const AUTHORIZED_USERS = [
     {
         username: "guillaume",
-        password: "jesuisunimposteur"
+        password: "JeSuisUnNainPosteur"
     },
     {
         username: "marcello",
-        password: "jesuisunimposteur"
+        password: "JeSuisUnNainPosteur"
     }
 ]
 
@@ -45,6 +45,7 @@ class App {
         this.wss = new WebSocket.Server({ noServer: true }); // Create a WebSocket server instance
         this.wss.on('connection', this.onWSSConnection);
         this.httpServer = express();
+        this.tokens = [];
 
         // Start the HTTP server
         const PORT = port ?? 3000;
@@ -62,11 +63,26 @@ class App {
         this.initRouter();
     }
 
+    authorize = (token) => {
+        return true;
+    }
+
     initRouter = () => {
+        this.httpServer.put('/authorize', (req, res) => {
+            if (1) {
+                res.json({
+                    token: "aaabbb444", 
+                });
+            } else {
+                res.writeHead(403);
+                res.end();
+            }
+        });
+
+
         this.httpServer.get('/sessions', (req, res) => {
             res.json({
                 sessions: this.sessions.map((session) => session.id), 
-                totalCount: this.sessions.length
             });
         });
 
@@ -83,7 +99,7 @@ class App {
             const session = this.getSessionById(req.params.sessionId);
             if (session !== undefined) {
                 res.json(
-                    this.session.players.map(p => p.JSON())
+                    this.session.players.map(p => p.id)
                 );
             }
         });
@@ -121,10 +137,9 @@ class App {
             if (session !== undefined) {
                 const player = session.getPlayerById(req.params.playerId);
                 if (player !== undefined) {
-                    //response.statusCode = 200;
                     player.name = dataObject.name;
                     player.avatarIndex = dataObject.avatarIndex;
-                    
+
                     this.broadcast(WSMessage(WS_MESSAGE_TYPE_UPDATE_PLAYERS, {
                         players: session.players.map(p => p.JSON())
                     }))
@@ -137,7 +152,13 @@ class App {
             this.removeAllSessions();
             res.json({
                 sessions: this.sessions.map((session) => session.id), 
-                totalCount: this.sessions.length
+            });
+        });
+
+        this.httpServer.delete("/sessions/:sessionId/players/:playerId", (req, res) => {
+            //this.removeAllSessions();
+            res.json({
+                sessions: this.sessions.map((session) => session.id), 
             });
         });
     }

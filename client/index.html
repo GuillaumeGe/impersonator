@@ -10,11 +10,30 @@
     </head>
     <body>
         <div class="templates">
+            <!-- INIT -->
             <div class="init">
                 <div class="list-item player template">
                     <div class="row">
                         <img src="../res/%IMG%"/>
                         <div>%PLAYER_NAME%</div>
+                    </div>
+                </div>
+            </div>
+            <!-- GAME -->
+            <div class="game">
+                <div class="list-item player template">
+                    <div class="row">
+                        <img src="../res/shark.png"/>
+                        <div>Guillaume</div>
+                    </div>
+                    <div class="row list words">
+                        <div class="word">Animal</div>
+                        <div class="word">Rouge</div>
+                        <div class="typing-animation hidden">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -49,7 +68,6 @@
                 </div>
                 <!-- <button class="create m-h-auto">Créer une session</button> -->
             </section>
-            
             <section class="ws-feed hidden">
                 <div class="qr-code m-h-auto"></div>
                 <div>
@@ -106,18 +124,12 @@
         <div class="view game">
             <section class="infos">
                 <b class="word m-h-auto">- Imposteur -</b>
-                <div class="typing-animation">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
+                
             </section>
             <section>
                 <div class="list players">
-                    <div class="row">
-                        <img src="../res/shark.png"/>
-                        <div>Guillaume</div>
-                    </div>
+                    
+                    
                     <div class="row">
                         <img src="../res/bear.png"/>
                         <div>Marcello</div>
@@ -152,6 +164,7 @@
     </body>
 
     <script type="text/javascript" src="../shared/constants.js"></script>
+    <script type="text/javascript" src="./mock.js"></script>
     <script type="text/javascript" src="./api.js"></script>
     <script type="text/javascript" src="./client.js"></script>
 </html>

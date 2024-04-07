@@ -111,12 +111,16 @@ module.exports = class Session {
         this.idleTime = 0;
     };
 
+    nextPlayer = function() {
+        this.idleTime = 0;
+    }
+
     JSON = function () {
         return {
             sessionId: this.id,
             config: this.config,
-            totalPlayers: this.players.length,
-            totalImpersonators: this.impersonators.length,
+            playerIds: this.player.map(player => player.id),
+            impersonatorIds: this.impersonators.map(imp => imp.id),
             turnIndex: this.turnIndex,
             currentWord: this.getCurrentWord(),
             words: this.words,
