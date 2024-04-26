@@ -14,6 +14,7 @@ module.exports = class Player {
         this.vote = undefined;
         this.score = 0;
         this.avatarIndex = avatarIndex;
+        this.isOffline = false;
     }
 
     JSON = function () {
@@ -22,7 +23,8 @@ module.exports = class Player {
             name: this.name,
             score: this.score,
             words: this.words,
-            avatarIndex: this.avatarIndex
+            avatarIndex: this.avatarIndex,
+            isOffline: this.isOffline
         };
     };
 }

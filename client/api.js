@@ -1,7 +1,7 @@
 function ImpersonatorAPI (serverBaseUrl, errorCallback) {
 	this.baseUrl = serverBaseUrl;
 	this.token = undefined;
-	this.onError = undefined;
+	this.onError = errorCallback;
 	this.onFailure = undefined;
 	
 	this._call = async function(method, path, body, queryParams, authRequest) {

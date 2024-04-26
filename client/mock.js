@@ -1,25 +1,25 @@
 function MOCK() { 
-
-    createPlayer() = function(id, name, avatarIndex, score, words) {
+    this.createPlayer = (id, name, avatarIndex, score, words, offline)=>  {
         return {
             id: id,
             name: name,
             avatarIndex: avatarIndex,
             score: score,
-            words: words !== undefined ? words : []
+            words: words !== undefined ? words : [],
+            isOffline: offline
         };
     }
 
-    createPlayers() = function() {
+    this.createPlayers = () => {
         return [
-            this.createPlayer("26739123", "Guillaume", 9),
-            this.createPlayer("26739289", "Seb", 5),
-            this.createPlayer("26739246", "Martin", 8),
-            this.createPlayer("26739207", "Franklin", 7),
+            this.createPlayer("26739123", "Guillaume", 9, 150),
+            this.createPlayer("26739289", "Seb", 5, 200),
+            this.createPlayer("26739246", "Martin", 8, 400),
+            this.createPlayer("26739207", "Franklin", 7, 50),
         ]
     }
 
-    createSession = function(players) {
+    this.createSession = (players) => {
         return {
             sessionId: "123665",
             playerIds: this.createPlayers().map(player => player.id),
@@ -30,7 +30,4 @@ function MOCK() {
             idleTime: 0
         };
     }
-
-
-    
 };

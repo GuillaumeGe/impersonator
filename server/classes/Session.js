@@ -65,7 +65,7 @@ module.exports = class Session {
         }.bind(this), 1000);
     };
 
-    addPlayer = function (name) {
+    addPlayer = function(name) {
         if (this.players.length < this.config.maxPlayers) {
             const player = new Player(name);
             this.players.push(player);
@@ -86,11 +86,11 @@ module.exports = class Session {
         }
     }
 
-    close = function () {
+    close = function() {
         clearInterval(this._loopTimer);
     };
 
-    getCurrentWord = function () {
+    getCurrentWord = function() {
         if (this.wordIndex < this.words) {
             return this.words[this.wordIndex];
         }
@@ -98,7 +98,7 @@ module.exports = class Session {
         return undefined;
     };
 
-    nextWord = function () {
+    nextWord = function() {
         if (this.players.length > this.config.minPlayers) {
             this.impersonators = pickRandomElements(this.players, this.config.maxImpersonators);
         }
@@ -107,7 +107,7 @@ module.exports = class Session {
         return getCurrentWord();
     };
 
-    nextTurn = function () {
+    nextTurn = function() {
         this.idleTime = 0;
     };
 
@@ -115,7 +115,7 @@ module.exports = class Session {
         this.idleTime = 0;
     }
 
-    JSON = function () {
+    JSON = function() {
         return {
             sessionId: this.id,
             config: this.config,
