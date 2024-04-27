@@ -8,6 +8,20 @@ function showElement(element, show) {
 	}
 }
 
+function SORT_SCORE_ASC(a, b) {
+	if (a.score > b.score) return -1;
+	if (b.score > a.score) return 1;
+
+	return 0;
+}
+
+function SORT_SCORE_DSC(a, b) {
+	if (a.score > b.score) return 1;
+	if (b.score > a.score) return -1;
+
+	return 0;
+}
+
 function getDOMElement(selectorString) {
 	return document.querySelector(selectorString);
 }
@@ -40,7 +54,8 @@ const ClientAppState = Object.freeze({
 	Init: 0,
 	Game: 1,
 	Vote: 2,
-	Ladder: 3
+	Ladder: 3,
+	Terminated: 4,
 });
 
 function ClientApp(address, parameters) {
@@ -91,9 +106,12 @@ function ClientApp(address, parameters) {
 		this.VOTE_view = ".view.vote";
 		this.VOTE_playerList = ".view.vote .list.players";
 
-		this.LADB_view = ".view.ladder";
+		this.LABD_view = ".view.ladder";
 		this.LABD_playerList = ".view.ladder .list.players";
 		this.LABD_nextWordButton = ".view.ladder button.next";
+
+		this.TERM_view = ".view.terminated";
+		this.TERM_restartButton = ".view.terminated .restart";
 	}
 
 	this.buildAvatarList = () => {
@@ -137,6 +155,7 @@ function ClientApp(address, parameters) {
 				case ClientAppState.Ladder:
 					playerListItemTemplate = getDOMElement(this.LABD_playerListItemTemplate).innerHTML;
 					playerListElement = getDOMElement(this.LABD_playerList);
+					players = players.sort(SORT_SCORE_ASC);
 					break;
 				default:
 					break;
@@ -160,12 +179,16 @@ function ClientApp(address, parameters) {
 	this.buildPlayerListItem = (template, player) => {
 		let result = template.trim();
 
-		result = result.replace(/%PLAYER_NAME%/g, player.name);
-		result = result.replace(/%PLAYER_SCORE%/g, player.score);
-        result = result.replace(/%IMG_SRC%/g, "src='../res/" + AVATAR_IMGS[player.avatarIndex] + "'");
+		result = result.replace(/%player_name%/g, player.name);
+		result = result.replace(/%player_score%/g, player.score);
+		result = result.replace(/%max_score%/g, 500);
+		result = result.replace(/%player_id%/g, player.id);
+        result = result.replace(/%img_src%/g, "src='../res/" + AVATAR_IMGS[player.avatarIndex] + "'");
 
 		if (this.player !== undefined && this.player.id == player.id) {
-			
+			result = result.replace(/%player_current%/g, "current");
+		} else {
+			result = result.replace(/%player_current%/g, "");
 		}
 		
 		return result;
@@ -212,27 +235,36 @@ function ClientApp(address, parameters) {
 			this.state = state;
 
 			// Update UI accordingly
-			showElement(getDOMElement(this.INIT_view), this.state === ClientApp.Init);
-			showElement(getDOMElement(this.GAME_view), this.state === ClientApp.Game);
-			showElement(getDOMElement(this.VOTE_view), this.state === ClientApp.Vote);
-			showElement(getDOMElement(this.LABD_view), this.state === ClientApp.Ladder);
+			showElement(getDOMElement(this.INIT_view), this.state === ClientAppState.Init);
+			showElement(getDOMElement(this.GAME_view), this.state === ClientAppState.Game);
+			showElement(getDOMElement(this.VOTE_view), this.state === ClientAppState.Vote);
+			showElement(getDOMElement(this.LABD_view), this.state === ClientAppState.Ladder);
+			showElement(getDOMElement(this.TERM_view), this.state === ClientAppState.Terminated);
+
+
+			//getDOMElement(this.LABD_playerList).classList.add("no-transition");
+
+			switch(this.state) {
+				case ClientAppState.Init:
+					showElement(getDOMElement(this.INIT_createSessionSection), this.sessionId == undefined);
+					showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
+					// showElement(getDOMElement(this.INIT_createPlayerSection), true);
+					break;
+				case ClientAppState.Game:
+					break;
+				case ClientAppState.Vote:
+					break;
+				case ClientAppState.Ladder:
+					//getDOMElement(this.LABD_playerList).classList.remove("no-transition");
+					break;
+				case ClientAppState.Terminated:
+					break;
+				default:
+					break;
+			}
 		}
 
-		switch(this.state) {
-			case ClientAppState.Init:
-				showElement(getDOMElement(this.INIT_createSessionSection), this.sessionId == undefined);
-				showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
-				showElement(getDOMElement(this.INIT_createPlayerSection), true);
-				break;
-			case ClientAppState.Game:
-				break;
-			case ClientAppState.Vote:
-				break;
-			case ClientAppState.Ladder:
-				break;
-			default:
-				break;
-		}
+		
 	}
 
 	this.selectCarouselAvatar = (indexIncrement) => {
@@ -318,10 +350,14 @@ function ClientApp(address, parameters) {
 	this.initSelectors();
 	this.buildAvatarList();
 	this.initEventListeners();
+
+	const mockPlayers = mock.createPlayers();
+	this.player = mockPlayers[6];
+	this.updatePlayers(mockPlayers);
 	this.setState(ClientAppState.Init);
 
 	//TESTS
-	this.updatePlayers(mock.createPlayers());
+	
 	this.setState(ClientAppState.Ladder);
 
 	console.log(this.sessionId);

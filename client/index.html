@@ -20,19 +20,19 @@
             <!-- INIT -->
             <div class="init">
                 <div class="player-list-item template">
-                    <div class="player row" data-id="%ID%">
-                        <img %IMG_SRC%/>
-                        <div>%PLAYER_NAME%</div>
+                    <div class="player row %player_current%" data-id="%player_id%">
+                        <img %img_src%/>
+                        <div>%player_name%</div>
                     </div>
                 </div>
             </div>
             <!-- GAME -->
             <div class="game">
                 <div class="player-list-item template">
-                    <div class="player" data-id="%ID%">
+                    <div class="player %player_current%" data-id="%player_id%">
                         <div class="row">
-                            <img %IMG_SRC%/>
-                            <div>%PLAYER_NAME%</div>
+                            <img %img_src%/>
+                            <div>%player_name%</div>
                         </div>
                         <div class="row list words">
                             <div class="word-list-item"></div>
@@ -41,17 +41,24 @@
                     </div>
                 </div>
             </div>
+            <!-- VOTE -->
+            <div class="vote">
+                <div class="player-list-item template">
+                    <div class="player row %player_current%" data-id="%player_id%">
+                        <img %img_src%/>
+                        <div>%player_name%</div>
+                    </div>
+                </div>
+            </div>
             <!-- LADDER BOARD-->
             <div class="ladder">
                 <div class="player-list-item template">
-                    <div class="player" data-id="%ID%">
-                        <div class="row">
-                            <img %IMG_SRC%/>
-                            <div class="score" data-value=""></div>
-                            <div>%PLAYER_SCORE%</div>
+                    <div class="player row space-between %player_current%" data-id="%player_id%">
+                        <div class="score-indicator-bar" style="width: calc(calc((100% - var(--avatar-list-item-width)) / %max_score% ) * %player_score%)">
+                            <div class="bar"></div>
+                            <img class="head" %img_src%/>
                         </div>
-                        
-                        </div>
+                        <div>%player_score%</div>
                     </div>
                 </div>
             </div>
@@ -153,7 +160,6 @@
         <div class="view game hidden">
             <section class="infos">
                 <b class="word m-h-auto">- Imposteur -</b>
-                
             </section>
             <section>
                 <div class="list players">
@@ -198,8 +204,17 @@
 
         <div class="view ladder hidden">
             <section>
-                <div class="list players">
+                <h2 class="m-h-auto">Scores</h2>
+                <div class="list players no-transition">
                 </div>
+                <button class="next m-h-auto">Suivant</button>
+            </section>
+        </div>
+        <div class="view terminated hidden">
+            <section>
+                <h2 class="m-h-auto">La partie est terminée !</h2>
+                <h3 class="m-h-auto">Merci d'avoir joué !</h3>
+                <button class="restart m-h-auto">Recommencer</button>
             </section>
         </div>
     </body>
