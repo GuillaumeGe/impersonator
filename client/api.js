@@ -77,8 +77,8 @@ function ImpersonatorAPI (serverBaseUrl, errorCallback) {
 		);
 	}
 	
-	this.createSession = async function() {
-		return await this._call("POST", `/sessions`);
+	this.createSession = async function(playerInfos) {
+		return await this._call("POST", `/sessions`, playerInfos);
 	}
 	
 	this.joinSessionCreatePlayer = async function(sessionId, playerInfos) {

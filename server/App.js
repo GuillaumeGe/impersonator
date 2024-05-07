@@ -106,8 +106,9 @@ class App {
 
         this.httpServer.post('/sessions', (req, res) => {
             if (this.sessions.length < MAX_SESSIONS) {
-                const config = req.body ?? BASE_SESSION_CONFIG;
-                const session = new Session(config, this.removeSession);
+                const config = req.body?.config ?? BASE_SESSION_CONFIG;
+                const player = req.body?.player;
+                const session = new Session(config, this.removeSession, player != undefined ? [player] : []);
                 this.sessions.push(session);
                 res.json(session.JSON());
             } else {

@@ -44,9 +44,14 @@
             <!-- VOTE -->
             <div class="vote">
                 <div class="player-list-item template">
-                    <div class="player row %player_current%" data-id="%player_id%">
-                        <img %img_src%/>
-                        <div>%player_name%</div>
+                    <div class="player col %player_current%" data-id="%player_id%">
+                        <div class="row align-center">
+                            <img %img_src%/>
+                            <b>%player_name%</b>
+                        </div>
+                        <div class="row list words m-h-auto">
+                            %player_words%
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,31 +81,41 @@
                 <div style="margin: auto 2vw; display: block; font-size: 1em; font-family: cursive;">L'Imposteur</div>
                 <img src="../res/icon.svg" class="logo-img"/>
             </h1>
-            <section class="session-creation hidden">
+            <section class="create-session hidden">
                 <h2>Configuration</h2>
                 <div class="row space-between">
                     <div>Nombre de joueurs min.</div>
-                    <input type="number" value="4" min="4" max="6">
+                    <input type="number" value="4" min="4" max="6" name="minPlayers">
                 </div>
                 <div class="row space-between">
                     <div>Nombre de joueurs max.</div>
-                    <input type="number" value="10" min="6" max="10">
+                    <input type="number" value="10" min="6" max="10" name="maxPlayers">
                 </div>
                 <div class="row space-between">
                     <div>Nombre d'imposteurs</div>
-                    <input type="number" value="1" min="1" max="3">
+                    <input type="number" value="1" min="1" max="3" name="numberOfImpersonators">
                 </div>
                 <div class="row space-between">
                     <div>Nombre de tours</div>
-                    <input type="number" value="3" min="1" max="3">
+                    <input type="number" value="3" min="2" max="4" name="numberOfTurns">
                 </div>
                 <div class="row space-between">
                     <div>Activer décompte joueur</div>
-                    <input type="checkbox"/>
+                    <input type="checkbox" name="enablePlayerTimer"/>
                 </div>
+                <div class="row space-between">
+                    <div>Afficher les mots</div>
+                    <select name="showWords">
+                        <option value="0" name="always">Tout le temps</option>
+                        <option value="1" name="voteOnly">Lors du vote</option>
+                        <option value="2" name="gameOnly">Lors du jeu</option>
+                    </select>
+                </div>
+                
                 <!-- <button class="create m-h-auto">Créer une session</button> -->
             </section>
-            <section class="player-creation">
+            <div class="qr-code m-h-auto hidden" data-url=""></div>
+            <section class="create-player">
                 <h2 class="m-h-auto">Qui es-tu ?</h2>
                 <div class="carousel avatars m-h-auto">
                     <button class="prev">&lt</button>
@@ -112,45 +127,13 @@
                 <button class="join m-h-auto" disabled>Rejoindre</button>
             </section>
             <section class="ws-feed hidden">
-                <div class="qr-code m-h-auto" data-url=""></div>
                 <div>
                     <h2 class="m-h-auto row collapse-btn collapsed">
                         <div class="n-players">5</div>
                         <div>Joueur(s)</div>
                     </h2>
                     <div class="list players collapse-content">
-                        <div class="row current">
-                            <img src="../res/shark.png"/>
-                            <div>Guillaume</div>
-                        </div>
-                        <div class="row offline">
-                            <img src="../res/bear.png"/>
-                            <div>Marcello</div>
-                        </div>
-                        <div class="row">
-                            <img src="../res/furet.png"/>
-                            <div>Val</div>
-                        </div>
-                        <div class="row">
-                            <img src="../res/giraf.png"/>
-                            <div>Adri</div>
-                        </div>
-                        <div class="row">
-                            <img src="../res/cat.png"/>
-                            <div>Ali</div>
-                        </div>
-                        <div class="row offline">
-                            <img src="../res/koala.png"/>
-                            <div>Seb</div>
-                        </div>
-                        <div class="row">
-                            <img src="../res/dog-2.png"/>
-                            <div>Syril</div>
-                        </div>
-                        <div class="row">
-                            <img src="../res/fish.png"/>
-                            <div>Invité</div>
-                        </div>
+
                     </div>
                 </div>
                 <button class="start m-h-auto">Commencer</button>
@@ -163,43 +146,23 @@
             </section>
             <section>
                 <div class="list players">
-                    <div class="row">
-                        <img src="../res/bear.png"/>
-                        <div>Marcello</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/furet.png"/>
-                        <div>Val</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/giraf.png"/>
-                        <div>Adri</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/cat.png"/>
-                        <div>Ali</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/koala.png"/>
-                        <div>Seb</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/dog-2.png"/>
-                        <div>Syril</div>
-                    </div>
-                    <div class="row">
-                        <img src="../res/fish.png"/>
-                        <div>Invité</div>
-                    </div>
+                    
                 </div>
             </section>
         </div>
 
         <div class="view vote hidden">
             <section>
+                <h2 class="m-h-auto">Place aux votes !</h2>
                 <div class="list players">
                 </div>
+                <h3 class="m-h-auto">Vote(s) restant: <span class="vote-left"></span></h3>    
+                <button class="submit m-h-auto">Valider</button>
             </section>
+        </div>
+
+        <div class="view summary hidden">
+            
         </div>
 
         <div class="view ladder hidden">

@@ -1,5 +1,12 @@
+function isNullOrUndefined(value) {
+	if (value === null || value === undefined) {
+		return true;
+	}
+	return false;
+}
+
 function showElement(element, show) {
-	if (element !== undefined && element !== null) {
+	if (!isNullOrUndefined(element)) {
 		if (show) {
 			element.classList.remove("hidden");
 		} else {
@@ -31,12 +38,7 @@ function getDOMElements(selectorString) {
 	return result != undefined ? result : [];
 }
 
-// function showQRCode(url) {
-// 	new QRCode(INIT_qrCodeWrapper, {
-// 		text: url, // The content you want to encode into the QR code
-// 		width: 256, // Width of the QR code
-// 		height: 256, // Height of the QR code
-// 	});
+
 
 // 	showElement(INIT_qrCodeWrapper, true);
 // }
@@ -54,20 +56,22 @@ const ClientAppState = Object.freeze({
 	Init: 0,
 	Game: 1,
 	Vote: 2,
-	Ladder: 3,
-	Terminated: 4,
+	Summary: 3,
+	Ladder: 4,
+	Terminated: 5,
 });
 
-function ClientApp(address, parameters) {
+function ClientApp(address, sessionId, playerId) {
 	this.api = new ImpersonatorAPI(address);
-	//const api = new ImpersonatorAPI("127.0.0.1:3000");
+	const clientUrl = "https://gglconsulting.net/projects/impersonator/index.html"
 
 	this.isSessionInitiator = false;
-	this.sessionId = parameters.get("sessionId");
+	this.session = undefined;
 	this.player = undefined;
+	this.state = undefined;
+
 	this.username = undefined;
 	this.password = undefined;
-	this.state = undefined;
 
 	const NOTIFICATION_ERROR_TYPE = 0;
 	const NOTIFICATION_WARNING_TYPE = 1;
@@ -81,9 +85,9 @@ function ClientApp(address, parameters) {
 		this.VOTE_playerListItemTemplate = ".templates .vote .template.player-list-item";
 
 		this.INIT_view = ".view.init";
-		this.INIT_createSessionSection = ".view.init section.session-creation";
+		this.INIT_createSessionSection = ".view.init .create-session";
 		this.INIT_wsFeedSection = ".view.init section.ws-feed";
-		this.INIT_createPlayerSection = ".view.init section.player-creation";
+		this.INIT_createPlayerSection = ".view.init section.create-player";
 		this.INIT_createSessionButton = ".view.init button.create";
 		this.INIT_joinSessionButton = ".view.init button.join";
 		this.INIT_startSessionButton = ".view.init button.start";
@@ -105,6 +109,8 @@ function ClientApp(address, parameters) {
 
 		this.VOTE_view = ".view.vote";
 		this.VOTE_playerList = ".view.vote .list.players";
+		this.VOTE_voteLeftElement = ".view.vote .vote-left";
+		this.VOTE_submitButton = ".view.vote button.submit";
 
 		this.LABD_view = ".view.ladder";
 		this.LABD_playerList = ".view.ladder .list.players";
@@ -127,13 +133,15 @@ function ClientApp(address, parameters) {
 	}
 
 	this.buildPlayerList = (players, state) => {
-		if (state === undefined) {
-			this.buildPlayerList(players, ClientAppState.Init);
-			this.buildPlayerList(players, ClientAppState.Game);
-			this.buildPlayerList(players, ClientAppState.Vote);
-			this.buildPlayerList(players, ClientAppState.Ladder);
-			return;
-		}
+		this.removePlayerItemEventListeners();
+
+		// if (state === undefined) {
+		// 	this.buildPlayerList(players, ClientAppState.Init);
+		// 	this.buildPlayerList(players, ClientAppState.Game);
+		// 	this.buildPlayerList(players, ClientAppState.Vote);
+		// 	this.buildPlayerList(players, ClientAppState.Ladder);
+		// 	return;
+		// }
 
 		if (players !== undefined && Array.isArray(players)) {
 			let playerListItemTemplate = undefined;
@@ -162,6 +170,7 @@ function ClientApp(address, parameters) {
 			}
 
 			if (playerListItemTemplate !== undefined && playerListElement !== undefined) {
+				//TODO: remove listeners
 				playerListElement.innerHTML = "";
 
 				for (const player of players) {
@@ -173,6 +182,8 @@ function ClientApp(address, parameters) {
 				}
 			}
 		}
+
+		this.addPlayerItemEventListeners();
 	}
 
 	// Replaces everything it can replaces if specified needle is found
@@ -183,15 +194,111 @@ function ClientApp(address, parameters) {
 		result = result.replace(/%player_score%/g, player.score);
 		result = result.replace(/%max_score%/g, 500);
 		result = result.replace(/%player_id%/g, player.id);
-        result = result.replace(/%img_src%/g, "src='../res/" + AVATAR_IMGS[player.avatarIndex] + "'");
+        result = result.replace(/%img_src%/g, `src='../res/${AVATAR_IMGS[player.avatarIndex]}'`);
 
 		if (this.player !== undefined && this.player.id == player.id) {
 			result = result.replace(/%player_current%/g, "current");
 		} else {
 			result = result.replace(/%player_current%/g, "");
 		}
+
+		if (Array.isArray(player.words)) {
+			let wordsHTML = "";
+
+			for(const word of player.words) {
+				wordsHTML += `<div>${word}</div>`
+			}
+
+			result = result.replace(/%player_words%/g, wordsHTML);
+		}
 		
 		return result;
+	}
+
+	this.removePlayerItemEventListeners = () => {
+		getDOMElements(".player").forEach(function(playerItemElement) {
+			playerItemElement.removeEventListener("click", () => {});
+		});
+	}
+
+	this.addPlayerItemEventListeners = () => {
+		getDOMElements(this.VOTE_playerList + " .player").forEach(function(playerItemElement) {
+			playerItemElement.addEventListener("click", function() {
+				
+				if (playerItemElement.classList.contains("selected")) {
+					playerItemElement.classList.toggle("selected");
+				} else if (this.session.impersonatorIds.length == 1) {
+					getDOMElement(this.VOTE_playerList + " .player.selected")?.classList.toggle("selected");
+					playerItemElement.classList.toggle("selected");
+				} else {
+					if (getDOMElements(this.VOTE_playerList + " .player.selected").length < this.session.impersonatorIds.length) {
+						playerItemElement.classList.toggle("selected");
+					}
+				}
+
+				this.updateVoteView();
+			}.bind(this));
+		}.bind(this));
+	}
+
+	this.updateJoinButton = () => {
+		if (getDOMElement(this.INIT_playerNameInput).value.length > 0) {
+			getDOMElement(this.INIT_joinSessionButton).disabled = false;
+		} else {
+			getDOMElement(this.INIT_joinSessionButton).disabled = true;
+		}
+
+		if (!isNullOrUndefined(this.session)) {
+			if (isNullOrUndefined(this.player)) {
+				getDOMElement(this.INIT_joinSessionButton).innerHTML = "Rejoindre la session";
+			} else {
+				getDOMElement(this.INIT_joinSessionButton).innerHTML = "Modifier";
+			}
+		}
+	}
+
+	this.updateQRCode = () => {
+		if (!isNullOrUndefined(this.session)) {
+			const url = `${clientUrl}?sessionId=${this.session.id}`;
+			if (getDOMElement(this.INIT_qrCodeWrapper).getAttribute("data-url") !== url) {
+				const qr = new QRCode(getDOMElement(this.INIT_qrCodeWrapper), {
+					text: url,
+					width: 256, // Width of the QR code
+					height: 256, // Height of the QR code
+				});
+				getDOMElement(this.INIT_qrCodeWrapper).setAttribute("data-url", url);
+				showElement(getDOMElement(this.INIT_qrCodeWrapper), this.isSessionInitiator);
+			}
+		}
+	}
+
+	this.updateInitView = () => {
+		showElement(getDOMElement(this.INIT_createSessionSection), isNullOrUndefined(this.session));
+		showElement(getDOMElement(this.INIT_wsFeedSection), !isNullOrUndefined(this.session));
+		// showElement(getDOMElement(this.INIT_createPlayerSection), true);
+	
+		this.updateJoinButton();
+		this.updateQRCode();
+
+		showElement(getDOMElement(this.INIT_startSessionButton), this.isSessionInitiator);
+		
+		if (!isNullOrUndefined(this.session))
+		getDOMElement(this.INIT_startSessionButton).disabled = this.session.playerIds.length > 4;
+	}
+
+	this.updateVoteView = () => {
+		const nSelected = getDOMElements(this.VOTE_playerList + " .player.selected").length;
+
+		getDOMElement(this.VOTE_voteLeftElement).innerHTML = this.session.impersonatorIds.length - getDOMElements(this.VOTE_playerList + " .player.selected").length;
+		if (nSelected === this.session.impersonatorIds.length) {
+			getDOMElement(this.VOTE_submitButton).disabled = false;
+		} else {
+			getDOMElement(this.VOTE_submitButton).disabled = true;
+		}
+	}
+
+	this.showTimer = (duration) => {
+		
 	}
 
 	this.notifyMessage = (message, type, persist) => {
@@ -241,18 +348,17 @@ function ClientApp(address, parameters) {
 			showElement(getDOMElement(this.LABD_view), this.state === ClientAppState.Ladder);
 			showElement(getDOMElement(this.TERM_view), this.state === ClientAppState.Terminated);
 
-
 			//getDOMElement(this.LABD_playerList).classList.add("no-transition");
 
 			switch(this.state) {
 				case ClientAppState.Init:
-					showElement(getDOMElement(this.INIT_createSessionSection), this.sessionId == undefined);
-					showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
-					// showElement(getDOMElement(this.INIT_createPlayerSection), true);
+					
+					this.updateInitView();
 					break;
 				case ClientAppState.Game:
 					break;
 				case ClientAppState.Vote:
+					this.updateVoteView();
 					break;
 				case ClientAppState.Ladder:
 					//getDOMElement(this.LABD_playerList).classList.remove("no-transition");
@@ -262,9 +368,9 @@ function ClientApp(address, parameters) {
 				default:
 					break;
 			}
-		}
 
-		
+			// this.updatePlayers(this.session.players);
+		}
 	}
 
 	this.selectCarouselAvatar = (indexIncrement) => {
@@ -275,19 +381,36 @@ function ClientApp(address, parameters) {
 		newSelectedAvatarElement.classList.toggle("selected");
 	}
 
-	this.updateJoinButton = () => {
-		if (getDOMElement(this.INIT_playerNameInput).value.length > 0) {
-			getDOMElement(this.INIT_joinSessionButton).disabled = false;
-		} else {
-			getDOMElement(this.INIT_joinSessionButton).disabled = true;
-		}
-	}
 
 	this.updatePlayers = (players) => {
 		if (players !== undefined && Array.isArray(players)) {
 			getDOMElement(".n-players").innerHTML = players.length;
 		}
 		this.buildPlayerList(players, this.state);
+
+		switch (this.state) {
+			case ClientAppState.Init:
+				this.updateInitView();
+				break;
+		}
+	}
+
+	this.getCreateSessionInfos = () => {
+		return {
+			minPlayers: parseInt(getDOMElement(this.INIT_createSessionSection + " input[name='minPlayers']").value),
+			maxPlayers: parseInt(getDOMElement(this.INIT_createSessionSection + " input[name='maxPlayers']").value),
+			numberOfImpersonators: parseInt(getDOMElement(this.INIT_createSessionSection + " input[name='numberOfImpersonators']").value),
+			numberOfTurns: parseInt(getDOMElement(this.INIT_createSessionSection + " input[name='numberOfTurns']").value),
+			enablePlayerTimer: parseInt(getDOMElement(this.INIT_createSessionSection + " input[name='enablePlayerTimer']").checked),
+			showWords: parseInt(getDOMElement(this.INIT_createSessionSection + " select[name='showWords']").value)
+		};
+	}
+
+	this.getCreatePlayerInfos = () => {
+		return {
+			name: getDOMElement(this.INIT_playerNameInput).value,
+			avatarIndex: parseInt(getDOMElement(this.INIT_avatarCarouselListItems + ".selected").getAttribute("data-index"))
+		}
 	}
 
 	this.initEventListeners = () => {
@@ -297,48 +420,46 @@ function ClientApp(address, parameters) {
 		}.bind(this));
 	
 		getDOMElement(this.INIT_joinSessionButton).addEventListener('click', async function() {
-			if (!this.sessionId) {
-				//create the session if session id null (no qp in page)
-				const response = await this.api.createSession();
+			const sessionInfos = this.getCreateSessionInfos();
+			const playerInfos = this.getCreatePlayerInfos();
+
+			console.log(sessionInfos);
+			console.log(playerInfos);
 			
-				if (response) {
+			if (this.session === undefined) {
+				//create the session if session id null (no qp in page)
+				//const response = await this.api.createSession(sessionInfos, playerInfos);
+				const response = mock.createSession(sessionInfos, playerInfos);
+			
+				if (!isNullOrUndefined(response)) {
 					console.log(response);
-					//sessionId = response.id;
 					this.isSessionInitiator = true;
-					this.sessionId = response.id;
+					this.session = response;
+				}
+			} else {
+				// if (isNullOrUndefined(this.player)) {
+				// 	// create
+				// 	response = await this.api.joinSessionCreatePlayer(this.sessionId, playerInfos);
+				// } else {
+				// 	// update
+				// 	response = await this.api.joinSessionUpdatePlayer(this.sessionId, this.player.id, playerInfos);
+				// }
+
+				const response = mock.createPlayers("mockID", playerInfos.name, playerInfos.avatarIndex);
+		
+				if (!isNullOrUndefined(response)) {
+					this.player = response;
+					this.player = mock.createPlayers()[3];
+					showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
 				}
 			}
-	
-			let response = undefined;
-			const playerInfos = {
-				name: getDOMElement(this.INIT_playerNameInput).value,
-				avatarIndex: getDOMElement(this.INIT_avatarCarouselListItems + ".selected").getAttribute("data-index")
-			};
-	
-			if (this.player === undefined) {
-				// create
-				response = await this.api.joinSessionCreatePlayer(this.sessionId, playerInfos);
-			} else {
-				// update
-				response = await this.api.joinSessionUpdatePlayer(this.sessionId, this.player.id, playerInfos);
-			}
-	
-			if (response !== undefined) {
-				this.player = response;
-				showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
-			}
+
+			this.updateInitView();
+
+			console.log(this.session.id);
+			
 		}.bind(this));
 	
-		// getDOMElements(this.INIT_avatarListItems).forEach(function(avatarListItem) {
-		// 	avatarListItem.addEventListener("click", function(event) {
-		// 		const elem = event.currentTarget;
-		// 		const selectedAvatarElement = getDOMElement(this.INIT_avatarListItems + ".selected");
-		// 		selectedAvatarElement.classList.toggle("selected");
-		// 		elem.classList.toggle("selected");
-		// 		console.log(elem.getAttribute("data-index"));
-		// 	}.bind(this));
-		// }.bind(this));
-
 		getDOMElement(this.INIT_avatarCarouselNextButton).addEventListener('click', function() {
 			this.selectCarouselAvatar(1);
 		}.bind(this));
@@ -346,22 +467,34 @@ function ClientApp(address, parameters) {
 			this.selectCarouselAvatar(-1);
 		}.bind(this));
 	}
+	
+	if (!isNullOrUndefined(sessionId)) {
+		//TODO: retrieve session
+		this.session = mock.createSession(undefined, undefined, sessionId);
+	}
+
+	if (!isNullOrUndefined(playerId)) {
+		//TODO: retrieve player
+		this.player = mock.createPlayers()[6];
+	}
+
+	//TODO: add isInitiator in qp to retrieve if refresh and update it
 
 	this.initSelectors();
 	this.buildAvatarList();
 	this.initEventListeners();
 
-	const mockPlayers = mock.createPlayers();
-	this.player = mockPlayers[6];
-	this.updatePlayers(mockPlayers);
 	this.setState(ClientAppState.Init);
+	this.updatePlayers(mock.createPlayers());
 
 	//TESTS
-	
-	this.setState(ClientAppState.Ladder);
+	// this.setState(ClientAppState.Game);
+	// this.updatePlayers(mock.createPlayers());
 
-	console.log(this.sessionId);
 	console.log("App Started !");
 }
 
-const app = new ClientApp("146.59.226.180:3000", new URLSearchParams(window.location.search));
+const qp = new URLSearchParams(window.location.search);
+const sessionId = qp.get("sessionId");
+const playerId = qp.get("playerId");
+const app = new ClientApp("146.59.226.180:3000", sessionId, playerId);

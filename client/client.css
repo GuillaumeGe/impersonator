@@ -187,9 +187,14 @@ h1.logo-wrapper::before {
     max-width: var(--mobile-width-max);
     margin-left: auto;
     margin-right: auto;
-    height: 100vh;
+    min-height: 100vh;
     background: rgba(0,0,0,0.05);
-    padding: 16px;
+    padding: 0 16px;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
 }
 
 .row {
@@ -201,9 +206,14 @@ h1.logo-wrapper::before {
     justify-content: space-between;
 }
 
+.row.align-center {
+    align-items: center;
+}
+
 .view.init .qr-code {
-    width: 70%;
+    width: 40%;
     max-width: 256px;
+    border: solid 8px #fff;
 }
 
 .view h2 {
@@ -279,19 +289,61 @@ h1.logo-wrapper::before {
 }
 
 .view.init .list.players > .player.current,
-.view.vote .list.players > .player.current,
 .view.ladder .list.players > .player.current,
 .view.game .list.players > .player.current {
     border-color: rgba(106, 255, 69, 0.9);
 }
 
-.view.init input.name {
-    /* font-size: 6vw; */
-    border-radius: var(--controls-border-radius);
-    border: none;
-    padding: 12px;
-    text-align: center;
+/* VOTE */
+
+/*
+    Do not show current player
+*/
+.view.vote .list.players > .player.current {
+    display: none;
 }
+
+.view.vote .list.players > .player {
+    padding: 4px;
+    border: solid transparent;
+}
+
+.view.vote .list.players > .player img {
+    margin-right: 8px;
+}
+
+.view.vote .list.players > .player .list.words{
+    padding: 4px;
+}
+
+.view.vote .list.players > .player.selected {
+    background-color: rgba(255,0,0,0.2);
+    border-color: #fff;
+}
+
+.view.vote .list.players > .player.selected::after {
+    content: '';
+    display:block;
+    background: url(../res/icon-white.svg) no-repeat;
+    width: 64px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+.view.vote .list.players > .player {
+    align-items: flex-start;
+}
+
+.view.vote .list.players > .player .list.words > *{
+    margin-right: 4px;
+    padding: 4px;
+    border-radius: 6px;
+    background-color: rgba(0,0,0,0.15);
+}
+
+/* LADDER */
 
 .view.ladder .list.players > .player {
     height: var(--avatar-list-item-width);
@@ -335,6 +387,15 @@ h1.logo-wrapper::before {
     border-radius: 50%;
 }
 
+/* INIT */
+
+.view.init input.name {
+    /* font-size: 6vw; */
+    border-radius: var(--controls-border-radius);
+    border: none;
+    padding: 12px;
+    text-align: center;
+}
 
 .view.init .avatars .img-wrapper img {
     max-width: 100%;
@@ -394,6 +455,8 @@ h1.logo-wrapper::before {
     top: calc(-1 * var(--selection-offset));
     left: calc(-1 * var(--selection-offset));
 }
+
+/* MISC */
 
 .typing-animation > * {
     width: 10px;

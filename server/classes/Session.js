@@ -27,9 +27,9 @@ function pickRandomElements(array, x) {
 }
 
 module.exports = class Session {
-    constructor(config, sessionExpiredCallBack) {
+    constructor(config, sessionExpiredCallBack, players) {
         this.id = generateID();
-        this.players = [];
+        this.players = players ?? [];
         this.impersonators = []; // ref to one or more players
         this.turnIndex = 0;
         this.wordIndex = 0;
