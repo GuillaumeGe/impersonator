@@ -50,7 +50,7 @@ export class AuthrizationService {
     }
 
     private registerToken(user: User): UserToken {
-        const token = hashPassword(user.name + user.password, crypt.randomBytes(16).toString('hex'));
+        const token = hashPassword(user.name + user.password, crypto.randomBytes(16).toString('hex'));
 
         const generatonDate = new Date();
         const expirationDate = new Date(generatonDate.getTime() + TOKEN_EXPIRATION_TIMEOUT);
