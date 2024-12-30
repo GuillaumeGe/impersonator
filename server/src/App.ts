@@ -1,24 +1,14 @@
-const WebSocket = require('ws');
-//const http = require('http');
-const express = require('express');
-const Session = require('./classes/Session.js');
-const Player = require('./classes/Player.js');
+import WebSocket from 'ws';
+import express from 'express';
+
+import {Session} from './Session';
+import { AuthrizationService } from './AuthorizationService';
 
 const WS_MESSAGE_TYPE_UNKNOWN = "";
 const WS_MESSAGE_TYPE_UPDATE_SESSION = "";
 const WS_MESSAGE_TYPE_UPDATE_PLAYERS = "";
 const WS_MESSAGE_TYPE_SESSION_EXPIRED = "";
 
-const AUTHORIZED_USERS = [
-    {
-        username: "guillaume",
-        password: "JeSuisUnNainPosteur"
-    },
-    {
-        username: "marcello",
-        password: "JeSuisUnNainPosteur"
-    }
-]
 
 function WSMessage(messageType, data) {
     return {
@@ -27,6 +17,7 @@ function WSMessage(messageType, data) {
     }
 }
 
+const DEFAULT_PORT = 3000;
 const MAX_SESSIONS = 10;
 const BASE_SESSION_CONFIG = {
     minPlayers: 4,
@@ -39,85 +30,99 @@ const BASE_SESSION_CONFIG = {
 }
 
 class App {
-    constructor(port) {
+    clients: any[];
+    sessions: any[];
+    wss: express.WebSocket;
+    httpServer: any;
+    authService: AuthrizationService;
+    session: any;
+
+    constructor(port: number) {
         this.clients = []; // Store connected clients
         this.sessions = [];
         this.wss = new WebSocket.Server({ noServer: true }); // Create a WebSocket server instance
         this.wss.on('connection', this.onWSSConnection);
         this.httpServer = express();
-        this.tokens = [];
+        this.authService = new AuthrizationService(); 
 
-        // Start the HTTP server
-        const PORT = port ?? 3000;
-        this.httpServer.listen(PORT, () => {
-            console.log(`HTTP server running on port ${PORT}`);
+        this.httpServer.listen(port, () => {
+            console.log(`HTTP server running on port ${port}`);
         });
 
         // Upgrade HTTP server to support WebSocket
-        this.httpServer.on('upgrade', (req, socket, head) => {
-            wss.handleUpgrade(req, socket, head, (ws) => {
-                wss.emit('connection', ws, req);
+        this.httpServer.on('upgrade', (req: Request, socket: WebSocket, head) => {
+            this.wss.handleUpgrade(req, socket, head, (ws) => {
+                this.wss.emit('connection', ws, req);
             });
         });
         this.httpServer.use(express.json())    // <==== parse request body as JSON
         this.initRouter();
     }
 
-    authorize = (token) => {
-        return true;
-    }
-
     initRouter = () => {
-        this.httpServer.put('/authorize', (req, res) => {
-            if (1) {
+        this.httpServer.put('/authorize', (req: express.Request, res: express.Response) => {
+            const token = this.authService.authorize(req.body.username, req.body.password);
+
+            if (token !== undefined) {
                 res.json({
-                    token: "aaabbb444", 
+                    accessToken: token.accessToken,
+                    refreshToken: token.refreshToken,
+                    expires: token.expirationDate.toString(),
+                    generated: token.generationDate.toString()
                 });
             } else {
                 res.writeHead(403);
-                res.end();
             }
+            res.end();
         });
 
 
-        this.httpServer.get('/sessions', (req, res) => {
+        this.httpServer.get('/sessions', (req: express.Request, res: express.Response) => {
             res.json({
                 sessions: this.sessions.map((session) => session.id), 
             });
+            res.end();
         });
 
-        this.httpServer.get('/sessions/:sessionId', (req, res) => {
+        this.httpServer.get('/sessions/:sessionId', (req: express.Request, res: express.Response) => {
             const session = this.getSessionById(req.params.sessionId);
             if (session !== undefined) {
                 res.json(
                     this.session.JSON()
                 );
+            } else {
+                res.writeHead(404, "No session with ID " + req.params.sessionId);
             }
+            res.end();
         });
 
-        this.httpServer.get('/sessions/:sessionId/players', (req, res) => {
+        this.httpServer.get('/sessions/:sessionId/players', (req: express.Request, res: express.Response) => {
             const session = this.getSessionById(req.params.sessionId);
             if (session !== undefined) {
                 res.json(
                     this.session.players.map(p => p.id)
                 );
+            } else {
+                res.writeHead(404, "No session with ID " + req.params.sessionId);
             }
+            res.end();
         });
 
-        this.httpServer.post('/sessions', (req, res) => {
+        this.httpServer.post('/sessions', (req: express.Request, res: express.Response) => {
+            //TODO: authorize
             if (this.sessions.length < MAX_SESSIONS) {
-                const config = req.body?.config ?? BASE_SESSION_CONFIG;
-                const player = req.body?.player;
+                const config = req.body.config ?? BASE_SESSION_CONFIG;
+                const player = req.body.player;
                 const session = new Session(config, this.removeSession, player != undefined ? [player] : []);
                 this.sessions.push(session);
                 res.json(session.JSON());
             } else {
-                //TODO: response.statusCode = 422;
-                res.json({ error: "Too many sessions are running ! Try again later" });
+                res.writeHead(422, "Too many sessions are running ! Try again later");
             }
+            res.end();
         });
 
-        this.httpServer.post('/sessions/:sessionId/players', (req, res) => {
+        this.httpServer.post('/sessions/:sessionId/players', (req: express.Request, res: express.Response) => {
             const session = this.getSessionById(req.params.sessionId);
             const dataObject = req.body;
             if (session !== undefined) {
@@ -127,12 +132,15 @@ class App {
                     res.json(player.JSON());
                 } else {
                     //response.statusCode = 422;
-                    res.json({ error: "Session is full" });
+                    res.writeHead(422, "Session is full");
                 }
+            } else {
+                res.writeHead(404, "No session with ID " + req.params.sessionId);
             }
+            res.end();
         });
 
-        this.httpServer.put('/sessions/:sessionId/players/:playerId', (req, res) => {
+        this.httpServer.put('/sessions/:sessionId/players/:playerId', (req: express.Request, res: express.Response) => {
             const session = this.getSessionById(req.params.sessionId);
             const dataObject = req.body;
             if (session !== undefined) {
@@ -145,26 +153,33 @@ class App {
                         players: session.players.map(p => p.JSON())
                     }))
                     res.json(player.JSON());
+                } else {
+                    res.writeHead(404, `No player with ID ${req.params.playerId} in session with ID ${req.params.sessionId}`);
                 }
+            } else {
+                res.writeHead(404, "No session with ID " + req.params.sessionId);
             }
+            res.end();
         });
 
-        this.httpServer.delete("/sessions", (req, res) => {
+        this.httpServer.delete("/sessions", (req: Request, res: express.Response) => {
             this.removeAllSessions();
             res.json({
                 sessions: this.sessions.map((session) => session.id), 
             });
+            res.end();
         });
 
-        this.httpServer.delete("/sessions/:sessionId/players/:playerId", (req, res) => {
+        this.httpServer.delete("/sessions/:sessionId/players/:playerId", (req: express.Request, res: express.Response) => {
             //this.removeAllSessions();
             res.json({
                 sessions: this.sessions.map((session) => session.id), 
             });
+            res.end();
         });
     }
 
-    onWSSConnection = (ws) => {
+    onWSSConnection = (ws: WebSocket) => {
         console.log('Client connected');
     
         // Add client to the list
@@ -183,11 +198,11 @@ class App {
             console.log('Client disconnected');
             
             // Remove client from the list
-            this.clients.splice(clients.indexOf(ws), 1);
+            this.clients.splice(this.clients.indexOf(ws), 1);
         });
     }
 
-    getSessionById = (id) => {
+    getSessionById = (id: string) => {
         if (id === undefined) {
             return undefined;
         }
@@ -200,7 +215,7 @@ class App {
         }
     }
 
-    removeSession = (session) => {
+    removeSession = (session: Session) => {
         const sessionIndex = this.sessions.findIndex(s => s.id == session.id);
         if (sessionIndex !== undefined) {
             const message = "Session " + session.id + " has expired !";
@@ -214,8 +229,8 @@ class App {
         }
     }
     
-    removeAllSessions = () => {
-        for (const session in this.sessions) {
+    removeAllSessions(): void {
+        for (const session of this.sessions) {
             this.removeSession(session);
         }
     }
@@ -230,7 +245,7 @@ class App {
     };
 }
 
-const app = new App(3000);
+const app = new App(DEFAULT_PORT);
 
 
 

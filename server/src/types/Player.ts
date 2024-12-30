@@ -1,4 +1,4 @@
-function generateID() {
+function generateID(): string {
     return 'yxxxAxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0;
         const v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -6,12 +6,20 @@ function generateID() {
     });
 }
 
-module.exports = class Player {
-    constructor(name, avatarIndex) {
+class Player2 {
+    id: string;
+    name: string;
+    words: string[];
+    votePlayerIds: string[];
+    score: number;
+    avatarIndex: number;
+    isOffline: boolean;
+    
+    constructor(name: string, avatarIndex: number) {
         this.id = generateID();
         this.name = name;
         this.words = [];
-        this.votes = undefined;
+        this.votePlayerIds = [];
         this.score = 0;
         this.avatarIndex = avatarIndex;
         this.isOffline = false;
@@ -27,4 +35,14 @@ module.exports = class Player {
             isOffline: this.isOffline
         };
     };
+}
+
+export interface Player {
+    id: string;
+    name: string;
+    words: string[];
+    votePlayerIds: string[];
+    score: number;
+    avatarIndex: number;
+    isOffline: boolean;
 }
