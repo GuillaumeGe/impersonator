@@ -3,7 +3,7 @@ body {
     --indicators-bck-color: #ffaf00;
     --controls-color: #101020;
     --controls-border-radius: 24px;
-    --app-bck-color: #1d729b;
+    --app-bck-color: #285267;
     --opacity-disabled: 0.35;
     --mobile-width-max: 600px;
     --avatar-list-item-width: 48px;
@@ -136,7 +136,7 @@ h1.logo-wrapper::after {
     left: 0;
     z-index: 2;
     border-radius: 10px;
-    height: 1.5vh;
+    height: 0.75vh;
     width: 100%;
     /* background-color: black; */
     /* border: dotted 3px white; */

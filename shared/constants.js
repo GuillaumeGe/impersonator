@@ -11,20 +11,20 @@ const SCORE_IMPERSONATOR_INCR = 100;
 const SCORE_IMPERSONATOR_NOT_FOUND = 100;
 
 const AVATAR_IMGS = [
-    "man.png",
-    "woman.png",
-    "bear.png",
-    "cat.png",
-    "chicken.png",
-    "dog.png",
-    "dog-2.png",
-    "fish.png",
-    "shark.png",
-    "giraf.png",
-    "koala.png",
-    "mole.png",
-    "panda.png",
-    "rabbit.png",
-    "furet.png",
-    "penguin.png"
+    "man",
+    "woman",
+    "bear",
+    "cat",
+    "chicken",
+    "dog",
+    "dog-2",
+    "fish",
+    "shark",
+    "giraf",
+    "koala",
+    "mole",
+    "panda",
+    "rabbit",
+    "furet",
+    "penguin"
 ]

@@ -38,8 +38,6 @@ function getDOMElements(selectorString) {
 	return result != undefined ? result : [];
 }
 
-
-
 // 	showElement(INIT_qrCodeWrapper, true);
 // }
 
@@ -50,9 +48,8 @@ getDOMElements(".collapse-btn").forEach(function(btn) {
 	});
 });
 
-const mock = new MOCK();
-
 const ClientAppState = Object.freeze({
+	Error: -1,
 	Init: 0,
 	Game: 1,
 	Vote: 2,
@@ -62,16 +59,19 @@ const ClientAppState = Object.freeze({
 });
 
 function ClientApp(address, sessionId, playerId) {
-	this.api = new ImpersonatorAPI(address);
+
+	if (!isNullOrUndefined(address)) {
+		this.api = new ImpersonatorAPI(address);
+	} else {
+		this.api = new ImpersonatorMockAPI();
+	}
 	const clientUrl = "https://gglconsulting.net/projects/impersonator/index.html"
 
 	this.isSessionInitiator = false;
 	this.session = undefined;
 	this.player = undefined;
 	this.state = undefined;
-
-	this.username = undefined;
-	this.password = undefined;
+	this.user = undefined;
 
 	const NOTIFICATION_ERROR_TYPE = 0;
 	const NOTIFICATION_WARNING_TYPE = 1;
@@ -124,7 +124,7 @@ function ClientApp(address, sessionId, playerId) {
 		let avatarListContent = "";
 	
 		for (let i = 0; i < AVATAR_IMGS.length; i++) {
-			avatarListContent += '<div class="img-wrapper ' + (i == 0 ? "selected" : "") + '" data-index="' + i + '"><img src="../res/' + AVATAR_IMGS[i] + '"/></div>';
+			avatarListContent += '<div class="img-wrapper ' + (i == 0 ? "selected" : "") + '" data-index="' + i + '"><img src="../res/' + AVATAR_IMGS[i] + '.png"/></div>';
 		}
 		
 		// getDOMElement(this.INIT_avatarListContent).innerHTML = avatarListContent;
@@ -194,7 +194,7 @@ function ClientApp(address, sessionId, playerId) {
 		result = result.replace(/%player_score%/g, player.score);
 		result = result.replace(/%max_score%/g, 500);
 		result = result.replace(/%player_id%/g, player.id);
-        result = result.replace(/%img_src%/g, `src='../res/${AVATAR_IMGS[player.avatarIndex]}'`);
+        result = result.replace(/%img_src%/g, `src='../res/${AVATAR_IMGS[player.avatarIndex]}.png'`);
 
 		if (this.player !== undefined && this.player.id == player.id) {
 			result = result.replace(/%player_current%/g, "current");
@@ -282,8 +282,9 @@ function ClientApp(address, sessionId, playerId) {
 
 		showElement(getDOMElement(this.INIT_startSessionButton), this.isSessionInitiator);
 		
-		if (!isNullOrUndefined(this.session))
-		getDOMElement(this.INIT_startSessionButton).disabled = this.session.playerIds.length > 4;
+		if (!isNullOrUndefined(this.session)) {
+			getDOMElement(this.INIT_startSessionButton).disabled = this.session.playerIds.length > this.session.config.minPlayers;
+		}
 	}
 
 	this.updateVoteView = () => {
@@ -298,7 +299,7 @@ function ClientApp(address, sessionId, playerId) {
 	}
 
 	this.showTimer = (duration) => {
-		
+
 	}
 
 	this.notifyMessage = (message, type, persist) => {
@@ -429,7 +430,7 @@ function ClientApp(address, sessionId, playerId) {
 			if (this.session === undefined) {
 				//create the session if session id null (no qp in page)
 				//const response = await this.api.createSession(sessionInfos, playerInfos);
-				const response = mock.createSession(sessionInfos, playerInfos);
+				const response = await this.api.createSession(sessionInfos, playerInfos);
 			
 				if (!isNullOrUndefined(response)) {
 					console.log(response);
@@ -437,19 +438,18 @@ function ClientApp(address, sessionId, playerId) {
 					this.session = response;
 				}
 			} else {
-				// if (isNullOrUndefined(this.player)) {
-				// 	// create
-				// 	response = await this.api.joinSessionCreatePlayer(this.sessionId, playerInfos);
-				// } else {
-				// 	// update
-				// 	response = await this.api.joinSessionUpdatePlayer(this.sessionId, this.player.id, playerInfos);
-				// }
+				if (isNullOrUndefined(this.player)) {
+					// create
+					response = await this.api.joinSessionCreatePlayer(this.sessionId, playerInfos);
+				} else {
+					// update
+					response = await this.api.joinSessionUpdatePlayer(this.sessionId, this.player.id, playerInfos);
+				}
 
-				const response = mock.createPlayers("mockID", playerInfos.name, playerInfos.avatarIndex);
+				//const response = this.api.j(playerInfos.name, playerInfos.avatarIndex);
 		
 				if (!isNullOrUndefined(response)) {
 					this.player = response;
-					this.player = mock.createPlayers()[3];
 					showElement(getDOMElement(this.INIT_wsFeedSection), this.player !== undefined);
 				}
 			}
@@ -467,34 +467,46 @@ function ClientApp(address, sessionId, playerId) {
 			this.selectCarouselAvatar(-1);
 		}.bind(this));
 	}
+
+	init = async () => {
+		try {
+			if (!isNullOrUndefined(sessionId)) {
+				//TODO: retrieve session
+				this.session = await this.api.getSession(sessionId);
+			}
+		
+			if (!isNullOrUndefined(playerId)) {
+				//TODO: retrieve player
+				this.player = await this.api.getPlayers(playerId);
+			}
+
+			//TODO: add isInitiator in qp to retrieve if refresh and update it
 	
-	if (!isNullOrUndefined(sessionId)) {
-		//TODO: retrieve session
-		this.session = mock.createSession(undefined, undefined, sessionId);
+			this.initSelectors();
+			this.buildAvatarList();
+			this.initEventListeners();
+		
+			this.setState(ClientAppState.Init);
+			console.log("App Started !");
+		} catch (error) {
+			//this.setState(ClientAppState.Error);
+			console.log(error);
+			this.notifyMessage("Couldn't start the application", NOTIFICATION_ERROR_TYPE, true);
+		}
 	}
-
-	if (!isNullOrUndefined(playerId)) {
-		//TODO: retrieve player
-		this.player = mock.createPlayers()[6];
-	}
-
-	//TODO: add isInitiator in qp to retrieve if refresh and update it
-
-	this.initSelectors();
-	this.buildAvatarList();
-	this.initEventListeners();
-
-	this.setState(ClientAppState.Init);
-	this.updatePlayers(mock.createPlayers());
-
+	
+	
 	//TESTS
 	// this.setState(ClientAppState.Game);
 	// this.updatePlayers(mock.createPlayers());
 
-	console.log("App Started !");
+	init();	
 }
 
 const qp = new URLSearchParams(window.location.search);
 const sessionId = qp.get("sessionId");
 const playerId = qp.get("playerId");
-const app = new ClientApp("146.59.226.180:3000", sessionId, playerId);
+const sessionInitiator = qp.get("sessionInitiator");
+//const app = new ClientApp(undefined, sessionId, playerId);
+const app = new ClientApp("127.0.0.1:3000", sessionId, playerId);
+//const app = new ClientApp("146.59.226.180:3000", sessionId, playerId);
